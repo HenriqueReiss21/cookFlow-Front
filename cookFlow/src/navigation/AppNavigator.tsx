@@ -3,7 +3,7 @@ import { NavigationContainer } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet } from "react-native";
 import WelcomeScreen from "../screens/WelcomeScreen";
-import RecipeListScreen from "../screens/ReceipeListScreen";
+import RecipeListScreen from "../screens/RecipeListScreen";
 
 const Stack = createNativeStackNavigator();
 const AppNavigator = () => {
