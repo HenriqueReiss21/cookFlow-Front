@@ -2,15 +2,19 @@ import { FlatList, StyleSheet, Text, View, Image, Pressable } from "react-native
 import React from "react";
 import { recipeList, colors } from "../Constant";
 import { FontAwesome } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 const RecipeCard: React.FC = () => {
+  const navigation = useNavigation<any>() //precisei colocar o <any> para parar o erro
   return (
     <View>
       <FlatList
         data={recipeList}
         renderItem={({item}) => (
           <Pressable
-            onPress={() => alert("hi")}
+            onPress={() => 
+              navigation.navigate("RecipeDetail", { item:item} )
+            }
             style={{
               backgroundColor: colors.COLOR_LIGHT,
               shadowColor: "#000",
@@ -18,6 +22,8 @@ const RecipeCard: React.FC = () => {
               shadowOpacity: 0.1,
               shadowRadius: 7,
               borderRadius: 16,
+              marginVertical: 16,
+              marginHorizontal: 16,
               alignItems: "center",
               paddingHorizontal: 8,
               paddingVertical: 26,
@@ -44,7 +50,7 @@ const RecipeCard: React.FC = () => {
         )}
         numColumns={2}
         columnWrapperStyle={{
-          justifyContent: "space-between",
+        justifyContent: "space-between",
         }}
         showsVerticalScrollIndicator={false}
         keyExtractor={item => item.id}
