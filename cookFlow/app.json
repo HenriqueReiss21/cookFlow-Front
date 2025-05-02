@@ -1,5 +1,6 @@
 {
   "expo": {
+    "permissions": ["INTERNET"],
     "name": "cookFlow",
     "slug": "cookFlow",
     "version": "1.0.0",

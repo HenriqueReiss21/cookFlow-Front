@@ -25,7 +25,6 @@ export const categories: Category[] = [
     }
 ];
 
-
 export const recipeList = [
     {
     id: "01",

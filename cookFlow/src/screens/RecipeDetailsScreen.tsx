@@ -95,7 +95,7 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
                    <View style={{alignSelf: "flex-start", marginVertical: 22}}>
                         <Text style={{ fontSize: 22, fontWeight: "600", marginBottom:6}}>Ingredientes</Text>
                         
-                        {item.ingredients.map((ingredient)=> {
+                        {item.ingredients.map((ingredient: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined)=> {
                             return (
                             <View style={{
                                 flexDirection: "row", 
@@ -120,7 +120,7 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
                             Passos:
                         </Text>
                         
-                        {item.steps.map((step, index)=> {
+                        {item.steps.map((step: any, index: number)=> {
                             return (
                                 <Text style={{ fontSize: 18, marginLeft: 6, marginVertical: 6}}>{`${index+1} ) ${step}`}</Text>
                             )
