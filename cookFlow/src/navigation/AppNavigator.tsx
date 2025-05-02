@@ -8,6 +8,7 @@ import RecipeDetailsScreen from "../screens/RecipeDetailsScreen";
 import LoginScreen from "../screens/LoginScreen";
 import SignUpScreen from "../screens/SignUpScreen";
 import { useAuth } from '../contexts/AuthContext';
+import { RecipeProvider } from "../contexts/RecipeContext";
 
 // Define the navigation param list types
 type RootStackParamList = {
@@ -53,8 +54,20 @@ const AppNavigator = () => {
           // App routes
           <>
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="ReceipeList" component={RecipeListScreen} />
-            <Stack.Screen name="RecipeDetail" component={RecipeDetailsScreen} />
+            <Stack.Screen name="ReceipeList">
+              {() => (
+                <RecipeProvider>
+                  <RecipeListScreen />
+                </RecipeProvider>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="RecipeDetail">
+              {(props) => (
+                <RecipeProvider>
+                  <RecipeDetailsScreen {...props} />
+                </RecipeProvider>
+              )}
+          </Stack.Screen>
           </>
         )}
       </Stack.Navigator>

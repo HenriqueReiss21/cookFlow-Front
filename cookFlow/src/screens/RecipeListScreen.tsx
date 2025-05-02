@@ -1,5 +1,5 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import React from 'react';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import SearchFilter from '../components/SearchFilter';
 import CategoriesFilter from '../components/CategoriesFilter';
@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useRecipes } from '../hooks/useRecipes';
 
 // Define o tipo para a navegação
 type RootStackParamList = {
@@ -22,6 +23,8 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const RecipeListScreen: React.FC = () => {
     const { user, signOut } = useAuth();
     const navigation = useNavigation<NavigationProp>();
+    const { loading, refreshRecipes } = useRecipes();
+    const [refreshing, setRefreshing] = useState(false);
     
     const handleLogout = async () => {
         await signOut();
@@ -32,37 +35,52 @@ const RecipeListScreen: React.FC = () => {
         });
     };
 
-    return (
-        <SafeAreaView style={{ flex: 1, marginHorizontal: 16 }}>
-            {/* Área superior com saudação e botão de logout */}
-            <View style={styles.topContainer}>
-                {/* render header com nome do usuário */}
-                <Header headerText={`Olá, ${user?.name +'  ' || 'User'}`} headerIcon='bell-o'/>
-                
-                {/* Botão de logout */}
-                <TouchableOpacity 
-                    style={styles.logoutButton}
-                    onPress={handleLogout}
-                >
-                    <FontAwesome name="sign-out" size={24} color="#f96163" />
-                    <Text style={styles.logoutText}>Logout</Text>
-                </TouchableOpacity>
-            </View>
-            
-            <SearchFilter icon="search" placeholder="Enter your favorite recipe"/>
-            
-            {/* Categories filter */}
-            <View style={{ marginTop: 22 }}>   
-                <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Categories</Text>
-                <CategoriesFilter />                                                                            
-            </View>
+    const onRefresh = React.useCallback(async () => {
+        setRefreshing(true);
+        await refreshRecipes();
+        setRefreshing(false);
+    }, [refreshRecipes]);
 
-            {/* Recipes List filter */}
-            <View style={{ marginTop: 22 }}>   
-                <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Recipes</Text>                                    
-                {/* Recipes List */}
-                <RecipeCard />                                               
-            </View>
+    return (
+        <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView 
+                contentContainerStyle={{ flexGrow: 1 }}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }
+            >
+                <View style={{ flex: 1, marginHorizontal: 16 }}>
+                    {/* Área superior com saudação e botão de logout */}
+                    <View style={styles.topContainer}>
+                        {/* render header com nome do usuário */}
+                        <Header headerText={`Olá, ${user?.name +'  ' || 'User'}`} headerIcon='bell-o'/>
+                        
+                        {/* Botão de logout */}
+                        <TouchableOpacity 
+                            style={styles.logoutButton}
+                            onPress={handleLogout}
+                        >
+                            <FontAwesome name="sign-out" size={24} color="#f96163" />
+                            <Text style={styles.logoutText}>Logout</Text>
+                        </TouchableOpacity>
+                    </View>
+                    
+                    <SearchFilter icon="search" placeholder="Enter your favorite recipe"/>
+                    
+                    {/* Categories filter */}
+                    <View style={{ marginTop: 22 }}>   
+                        <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Categories</Text>
+                        <CategoriesFilter />                                                                            
+                    </View>
+
+                    {/* Recipes List filter */}
+                    <View style={{ marginTop: 22, flex: 1 }}>   
+                        <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Recipes</Text>                                    
+                        {/* Recipes List */}
+                        <RecipeCard />                                               
+                    </View>
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -74,7 +92,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10
+        marginBottom: 10,
+        marginTop: 10
     },
     logoutButton: {
         flexDirection: 'row',

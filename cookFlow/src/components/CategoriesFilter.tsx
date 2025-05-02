@@ -1,42 +1,80 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import React from "react";
-import { categories, colors } from "../Constant";
-
-interface Category {
-    id: string;
-    category: string;
-}
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { useRecipes } from '../hooks/useRecipes';
 
 const CategoriesFilter: React.FC = () => {
-    return(
-        <View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {categories.map((category: Category, index: number) => {
-                    return (
-                        <View
-                            key={category.id}
-                            style={{
-                                backgroundColor: index === 0 ? colors.COLOR_PRIMARY : colors.COLOR_LIGHT,
-                                marginRight: 36,
-                                borderRadius: 8,
-                                paddingHorizontal: 16,
-                                paddingVertical: 10,
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.1,
-                                shadowRadius: 7,
-                                marginVertical: 16,
-                            }}
-                        >
-                            <Text style={{color: index === 0 ? colors.COLOR_LIGHT : colors.COLOR_DARK, fontSize: 18}}>{category.category}</Text>
-                        </View>
-                    );
-                })}
-            </ScrollView>
-        </View>
+  const { categories, selectedCategory, filterByCategory, loading } = useRecipes();
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Carregando categorias...</Text>
+      </View>
     );
+  }
+
+  return (
+    <View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
+        {categories.map((category, index) => {
+          const isSelected = category === selectedCategory;
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.categoryItem,
+                isSelected && styles.selectedCategory
+              ]}
+              onPress={() => filterByCategory(category)}
+            >
+              <Text 
+                style={[
+                  styles.categoryText,
+                  isSelected && styles.selectedCategoryText
+                ]}
+              >
+                {category}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
 };
 
-const styles = StyleSheet.create({});
-
 export default CategoriesFilter;
+
+const styles = StyleSheet.create({
+  container: {
+    paddingVertical: 15,
+  },
+  categoryItem: {
+    marginRight: 12,
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  selectedCategory: {
+    backgroundColor: '#f96163',
+  },
+  categoryText: {
+    fontWeight: '500',
+    color: '#333',
+  },
+  selectedCategoryText: {
+    color: '#fff',
+  },
+  loadingContainer: {
+    paddingVertical: 15,
+  }
+});
