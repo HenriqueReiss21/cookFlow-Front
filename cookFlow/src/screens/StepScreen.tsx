@@ -7,9 +7,10 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
-  ImageSourcePropType,
   StatusBar,
+  Pressable,
 } from 'react-native';
+import { FontAwesome } from "@expo/vector-icons";
 
 // Definição de tipos
 interface PassoReceita {
@@ -22,52 +23,15 @@ interface PassoReceita {
 interface ReceitaProps {
   titulo: string;
   passos: PassoReceita[];
+  color: string; // Cor de fundo da receita
 }
 
-// Dados de exemplo para a receita (em produção, isso viria de uma API ou banco de dados)
-const receitaExemplo: ReceitaProps = {
-  titulo: "Bolo de Chocolate",
-  passos: [
-    {
-      id: 1,
-      descricao: "Pré-aqueça o forno a 180°C e unte uma forma redonda.",
-      imagem: "https://via.placeholder.com/300",
-      tempoEmSegundos: 60, // 1 minuto para pré-aquecer
-    },
-    {
-      id: 2,
-      descricao: "Em uma tigela, misture 2 xícaras de farinha, 1 xícara de açúcar e 1/2 xícara de chocolate em pó.",
-      imagem: "https://via.placeholder.com/300",
-      tempoEmSegundos: 120, // 2 minutos para misturar
-    },
-    {
-      id: 3,
-      descricao: "Adicione 3 ovos, 1 xícara de leite e 1/2 xícara de óleo. Misture até obter uma massa homogênea.",
-      imagem: "https://via.placeholder.com/300",
-      tempoEmSegundos: 180, // 3 minutos para misturar
-    },
-    {
-      id: 4,
-      descricao: "Despeje a massa na forma e leve ao forno por aproximadamente 35 minutos.",
-      imagem: "https://via.placeholder.com/300",
-      tempoEmSegundos: 2100, // 35 minutos para assar
-    },
-    {
-      id: 5,
-      descricao: "Retire do forno e deixe esfriar antes de desenformar.",
-      imagem: "https://via.placeholder.com/300",
-      tempoEmSegundos: 600, // 10 minutos para esfriar
-    }
-  ]
-};
-
-interface ReceitaPassoAPassoProps {
-  receita?: ReceitaProps;
+interface StepScreenProps {
+  receita: ReceitaProps;
+  onVoltar: () => void;
 }
 
-const ReceitaPassoAPasso: React.FC<ReceitaPassoAPassoProps> = ({ 
-  receita = receitaExemplo // Valor padrão caso não seja fornecido
-}) => {
+const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
   const [passoAtual, setPassoAtual] = useState<number>(0);
   const [tempoRestante, setTempoRestante] = useState<number>(0);
   const [timerAtivo, setTimerAtivo] = useState<boolean>(false);
@@ -131,6 +95,7 @@ const ReceitaPassoAPasso: React.FC<ReceitaPassoAPassoProps> = ({
       setPassoAtual(passoAtual + 1);
     } else {
       Alert.alert("Receita concluída!", "Parabéns! Você finalizou todos os passos.");
+      onVoltar();
     }
   };
   
@@ -152,92 +117,112 @@ const ReceitaPassoAPasso: React.FC<ReceitaPassoAPassoProps> = ({
   };
   
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={styles.cabecalho}>
-        <Text style={styles.titulo}>{receita.titulo}</Text>
-        <Text style={styles.progresso}>Passo {passoAtual + 1} de {totalPassos}</Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: receita.color }]}>
+      <SafeAreaView style={styles.header}>
+        <Pressable style={{ flex: 1 }} onPress={onVoltar}>
+          <FontAwesome name={"arrow-circle-left"} size={28} color="red" />
+        </Pressable>
+      </SafeAreaView>
       
-      {receita.passos[passoAtual] && (
-        <View style={styles.conteudoPasso}>
-          {/* Imagem do passo */}
-          <Image 
-            source={{ uri: receita.passos[passoAtual].imagem }} 
-            style={styles.imagem}
-            resizeMode="cover"
-          />
-          
-          {/* Descrição do passo */}
-          <View style={styles.descricaoContainer}>
-            <Text style={styles.descricao}>
-              {receita.passos[passoAtual].descricao}
-            </Text>
-          </View>
-          
-          {/* Temporizador */}
-          <View style={styles.timerContainer}>
-            <Text style={styles.timerTexto}>
-              {formatarTempo(tempoRestante)}
-            </Text>
-            <View style={styles.timerBotoes}>
-              <TouchableOpacity 
-                style={[styles.botao, styles.botaoTimer]} 
-                onPress={alternarTimer}
-              >
-                <Text style={styles.botaoTexto}>
-                  {timerAtivo ? "Pausar" : "Iniciar"} Timer
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.botao, styles.botaoTimer]} 
-                onPress={reiniciarTimer}
-              >
-                <Text style={styles.botaoTexto}>Reiniciar</Text>
-              </TouchableOpacity>
+      <View style={styles.contentContainer}>
+        <View style={styles.cabecalho}>
+          <Text style={styles.titulo}>{receita.titulo}</Text>
+          <Text style={styles.progresso}>Passo {passoAtual + 1} de {totalPassos}</Text>
+        </View>
+        
+        {receita.passos[passoAtual] && (
+          <View style={styles.conteudoPasso}>
+            {/* Imagem do passo */}
+            <Image 
+              source={{ uri: receita.passos[passoAtual].imagem }} 
+              style={styles.imagem}
+              resizeMode="cover"
+            />
+            
+            {/* Descrição do passo */}
+            <View style={styles.descricaoContainer}>
+              <Text style={styles.descricao}>
+                {receita.passos[passoAtual].descricao}
+              </Text>
+            </View>
+            
+            {/* Temporizador */}
+            <View style={styles.timerContainer}>
+              <Text style={styles.timerTexto}>
+                {formatarTempo(tempoRestante)}
+              </Text>
+              <View style={styles.timerBotoes}>
+                <TouchableOpacity 
+                  style={[styles.botao, styles.botaoTimer]} 
+                  onPress={alternarTimer}
+                >
+                  <Text style={styles.botaoTexto}>
+                    {timerAtivo ? "Pausar" : "Iniciar"} Timer
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.botao, styles.botaoTimer]} 
+                  onPress={reiniciarTimer}
+                >
+                  <Text style={styles.botaoTexto}>Reiniciar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      )}
-      
-      {/* Navegação entre passos */}
-      <View style={styles.navegacao}>
-        <TouchableOpacity 
-          style={[
-            styles.botao, 
-            styles.botaoNavegacao, 
-            passoAtual === 0 ? styles.botaoDesativado : null
-          ]} 
-          onPress={irParaPassoAnterior}
-          disabled={passoAtual === 0}
-        >
-          <Text style={styles.botaoTexto}>Anterior</Text>
-        </TouchableOpacity>
+        )}
         
-        <TouchableOpacity 
-          style={[styles.botao, styles.botaoNavegacao]} 
-          onPress={irParaProximoPasso}
-        >
-          <Text style={styles.botaoTexto}>
-            {passoAtual === totalPassos - 1 ? "Finalizar" : "Próximo"}
-          </Text>
-        </TouchableOpacity>
+        {/* Navegação entre passos */}
+        <View style={styles.navegacao}>
+          <TouchableOpacity 
+            style={[
+              styles.botao, 
+              styles.botaoNavegacao, 
+              passoAtual === 0 ? styles.botaoDesativado : null
+            ]} 
+            onPress={irParaPassoAnterior}
+            disabled={passoAtual === 0}
+          >
+            <Text style={styles.botaoTexto}>Anterior</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.botao, styles.botaoNavegacao]} 
+            onPress={irParaProximoPasso}
+          >
+            <Text style={styles.botaoTexto}>
+              {passoAtual === totalPassos - 1 ? "Finalizar" : "Próximo"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
-const styles = StyleSheet.create<{[key: string]: any}>({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  contentContainer: {
     backgroundColor: '#fff',
+    flex: 1,
+    marginTop: 50,
+    borderTopLeftRadius: 56,
+    borderBottomRightRadius: 56,
+    padding: 16,
   },
   cabecalho: {
-    padding: 20,
+    padding: 16,
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
     backgroundColor: '#fff',
+    marginBottom: 16,
   },
   titulo: {
     fontSize: 28,
@@ -247,12 +232,12 @@ const styles = StyleSheet.create<{[key: string]: any}>({
   },
   progresso: {
     fontSize: 18,
-    color: '#f96163',
+    color: 'red',
     fontWeight: '600',
   },
   conteudoPasso: {
     flex: 1,
-    padding: 20,
+    padding: 16,
   },
   imagem: {
     width: '100%',
@@ -311,11 +296,11 @@ const styles = StyleSheet.create<{[key: string]: any}>({
     shadowRadius: 4,
   },
   botaoNavegacao: {
-    backgroundColor: '#f96163',
+    backgroundColor: 'red',
     minWidth: 140,
   },
   botaoTimer: {
-    backgroundColor: '#f96163',
+    backgroundColor: 'red',
     marginHorizontal: 8,
   },
   botaoTexto: {
@@ -328,4 +313,4 @@ const styles = StyleSheet.create<{[key: string]: any}>({
   },
 });
 
-export default ReceitaPassoAPasso;
+export default StepScreen;

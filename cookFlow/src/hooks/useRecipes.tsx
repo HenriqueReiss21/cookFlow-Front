@@ -55,12 +55,12 @@ export const useRecipes = () => {
         id: recipe._id,
         name: recipe.titulo,
         image: { uri: recipe.imagem }, // Usando URI para imagens
-        rating: "4.5", // Valor padrão se não existir na API
+        rating: recipe.rating, // Erro da IDE do VS Code, funcionando normalmente
         ingredients: recipe.ingredientes,
         steps: recipe.passos.map(passo => passo.descricao),
         time: recipe.tempoPreparo,
         difficulty: recipe.dificuldade,
-        calories: `${recipe.porcoes * 100} cal`, // Calculado com base nas porções
+        calories: recipe.calorias, // Erro da IDE do VS Code, funcionando normalmente
         category: recipe.categoria,
         description: recipe.descricao
       }));

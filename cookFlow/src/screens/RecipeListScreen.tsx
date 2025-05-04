@@ -53,7 +53,7 @@ const RecipeListScreen: React.FC = () => {
                     {/* Área superior com saudação e botão de logout */}
                     <View style={styles.topContainer}>
                         {/* render header com nome do usuário */}
-                        <Header headerText={`Olá, ${user?.name +'  ' || 'User'}`} headerIcon='bell-o'/>
+                        <Header headerText={`Olá, ${user?.name +'  ' || 'User'}`} headerIcon='user'/>
                         
                         {/* Botão de logout */}
                         <TouchableOpacity 
