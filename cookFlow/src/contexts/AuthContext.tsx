@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Configurar URL base para diferentes ambientes
       // 10.0.2.2 para emulador Android, localhost para iOS, ou IP da sua máquina para dispositivo físico
-      const baseURL = 'http://192.168.15.2:3000'; // ajuste conforme necessário
+      const baseURL = 'http://192.168.15.4:3000'; // ajuste conforme necessário
       
       // Authenticate with the API
       const response = await axios.post(`${baseURL}/auth/login`, {

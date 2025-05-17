@@ -10,6 +10,7 @@ interface Passo {
   descricao: string;
   animacao: string;
   tipo: string;
+  tempo: number; // Adicione isso se existir na API
 }
 
 interface ReceitaAPI {
@@ -23,6 +24,7 @@ interface ReceitaAPI {
   descricao: string;
   dificuldade: string;
   porcoes: number;
+  // Adicione outros campos conforme necessário
 }
 
 // Tipo para o formato exigido pelo componente ReceitaPassoAPasso
@@ -37,6 +39,7 @@ interface ReceitaFormatada {
   titulo: string;
   passos: PassoReceita[];
   color: string;
+  recipeId: string;
 }
 
 const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
@@ -55,61 +58,55 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
   const TEMPO_PADRAO_POR_PASSO = 120;
   
   // API base URL (poderia vir de um arquivo de configuração)
-  const API_BASE_URL = "http://192.168.15.2:3000";
+  const API_BASE_URL = "http://192.168.15.4:3000";
   
-  // Buscar dados da receita na API usando axios
-  const buscarReceitaDaAPI = async () => {
-    // Verificar se temos um ID de receita antes de fazer a requisição
-    if (!item?.id) {
-      console.error(`ID da receita não encontrado ${item.id}`);
-      setCarregando(false);
-      alert(`ID da receita não encontrado ${item.id}`);
-      return; 
-    }
+ const buscarReceitaDaAPI = async () => {
+  if (!item?.id) {
+    console.error('ID da receita não encontrado');
+    setCarregando(false);
+    return;
+  }
+  
+  setCarregando(true);
+  try {
+    // Modifique a URL para incluir o ID na rota
+    const response = await axios.get(`${API_BASE_URL}/receitas/${item.id}`);
     
-    setCarregando(true);
-    try {
-      const response = await axios.get(`${API_BASE_URL}/receitas`, {
-        params: { _id: item._id }
-      });
-      
-      const data = response.data;
-      
-      if (data && data.length > 0) {
-        setReceitaAPI(data[0]);
-        converterFormatoReceita(data[0]);
-      } else {
-        throw new Error("Nenhum dado encontrado");
-      }
-      
-      setCarregando(false);
-    } catch (erro) {
-      console.error("Erro ao buscar dados da API:", erro);
-      setCarregando(false);
-      alert("Erro ao carregar receita da API. Usando dados locais.");
+    // Verifique se recebeu dados válidos
+    if (response.data) {
+      setReceitaAPI(response.data);
+      converterFormatoReceita(response.data);
+    } else {
+      throw new Error('Nenhum dado encontrado');
     }
-  };
+  } catch (erro) {
+    console.error('Erro ao buscar dados da API:', erro);
+    alert('Erro ao carregar receita da API.');
+  } finally {
+    setCarregando(false);
+  }
+};
   
   // Converter dados da API para o formato esperado pelo componente StepScreen
-  const converterFormatoReceita = (receita: ReceitaAPI) => {
-    // Extrai a URL da imagem ou usa o objeto de imagem local com verificação de segurança
-    const imagemUri = typeof item?.image === 'string' ? 
-      item.image : 
-      receita?.imagem || ''; // Fallback para string vazia se ambos forem undefined
-    
-    const passosFormatados: PassoReceita[] = receita?.passos?.map(passo => ({
-      id: passo.numero,
-      descricao: passo.descricao,
-      imagem: imagemUri,
-      tempoEmSegundos: TEMPO_PADRAO_POR_PASSO
-    })) || [];
-    
-    setReceitaFormatada({
-      titulo: receita?.titulo || "Receita",
-      passos: passosFormatados,
-      color: item?.color || DEFAULT_COLOR // Usa a cor padrão se item.color não existir
-    });
-  };
+const converterFormatoReceita = (receita: ReceitaAPI) => {
+  // Use a imagem da receita da API
+  const imagemUri = receita?.imagem || '';
+  
+  // Use o tempo específico de cada passo da API (convertendo minutos para segundos)
+  const passosFormatados: PassoReceita[] = receita?.passos?.map(passo => ({
+    id: passo.numero,
+    descricao: passo.descricao,
+    imagem: imagemUri,
+    tempoEmSegundos: passo.tempo * 60 || TEMPO_PADRAO_POR_PASSO
+  })) || [];
+  
+  setReceitaFormatada({
+    titulo: receita?.titulo || "Receita",
+    passos: passosFormatados,
+    color: item?.color || DEFAULT_COLOR,
+    recipeId: receita?._id || ''
+  });
+};
   
   const iniciarPassoAPasso = () => {
     if (!receitaFormatada) {

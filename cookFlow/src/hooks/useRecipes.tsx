@@ -48,7 +48,7 @@ export const useRecipes = () => {
     try {
       setLoading(true);
       // Substitua pela URL correta da sua API
-      const response = await axios.get<ApiRecipe[]>('http://192.168.15.2:3000/receitas');
+      const response = await axios.get<ApiRecipe[]>('http://192.168.15.4:3000/receitas');
       
       // Transformar os dados da API para o formato esperado pelo app
       const transformedRecipes: Recipe[] = response.data.map(recipe => ({

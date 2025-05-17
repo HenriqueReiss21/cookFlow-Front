@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL da API local
-const API_BASE_URL = 'http://192.168.15.2:3000'; // Use este para Android Emulator
+const API_BASE_URL = 'http://192.168.15.4:3000'; // Use este para Android Emulator
 // Para iOS Simulator, use: 'http://localhost:3000'
 // Para dispositivos reais em desenvolvimento, use seu IP local: 'http://{seu-ip}:3000'
 

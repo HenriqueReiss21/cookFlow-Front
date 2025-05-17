@@ -9,6 +9,7 @@ import {
   Alert,
   StatusBar,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import { FontAwesome } from "@expo/vector-icons";
 
@@ -125,75 +126,77 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
       </SafeAreaView>
       
       <View style={styles.contentContainer}>
-        <View style={styles.cabecalho}>
-          <Text style={styles.titulo}>{receita.titulo}</Text>
-          <Text style={styles.progresso}>Passo {passoAtual + 1} de {totalPassos}</Text>
-        </View>
-        
-        {receita.passos[passoAtual] && (
-          <View style={styles.conteudoPasso}>
-            {/* Imagem do passo */}
-            <Image 
-              source={{ uri: receita.passos[passoAtual].imagem }} 
-              style={styles.imagem}
-              resizeMode="cover"
-            />
-            
-            {/* Descrição do passo */}
-            <View style={styles.descricaoContainer}>
-              <Text style={styles.descricao}>
-                {receita.passos[passoAtual].descricao}
-              </Text>
-            </View>
-            
-            {/* Temporizador */}
-            <View style={styles.timerContainer}>
-              <Text style={styles.timerTexto}>
-                {formatarTempo(tempoRestante)}
-              </Text>
-              <View style={styles.timerBotoes}>
-                <TouchableOpacity 
-                  style={[styles.botao, styles.botaoTimer]} 
-                  onPress={alternarTimer}
-                >
-                  <Text style={styles.botaoTexto}>
-                    {timerAtivo ? "Pausar" : "Iniciar"} Timer
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.botao, styles.botaoTimer]} 
-                  onPress={reiniciarTimer}
-                >
-                  <Text style={styles.botaoTexto}>Reiniciar</Text>
-                </TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.cabecalho}>
+            <Text style={styles.titulo}>{receita.titulo}</Text>
+            <Text style={styles.progresso}>Passo {passoAtual + 1} de {totalPassos}</Text>
+          </View>
+          
+          {receita.passos[passoAtual] && (
+            <View style={styles.conteudoPasso}>
+              {/* Imagem do passo */}
+              <Image 
+                source={{ uri: receita.passos[passoAtual].imagem }} 
+                style={styles.imagem}
+                resizeMode="contain"
+              />
+              
+              {/* Descrição do passo */}
+              <View style={styles.descricaoContainer}>
+                <Text style={styles.descricao}>
+                  {receita.passos[passoAtual].descricao}
+                </Text>
+              </View>
+              
+              {/* Temporizador */}
+              <View style={styles.timerContainer}>
+                <Text style={styles.timerTexto}>
+                  {formatarTempo(tempoRestante)}
+                </Text>
+                <View style={styles.timerBotoes}>
+                  <TouchableOpacity 
+                    style={[styles.botao, styles.botaoTimer]} 
+                    onPress={alternarTimer}
+                  >
+                    <Text style={styles.botaoTexto}>
+                      {timerAtivo ? "Pausar" : "Iniciar"} Timer
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.botao, styles.botaoTimer]} 
+                    onPress={reiniciarTimer}
+                  >
+                    <Text style={styles.botaoTexto}>Reiniciar</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        )}
-        
-        {/* Navegação entre passos */}
-        <View style={styles.navegacao}>
-          <TouchableOpacity 
-            style={[
-              styles.botao, 
-              styles.botaoNavegacao, 
-              passoAtual === 0 ? styles.botaoDesativado : null
-            ]} 
-            onPress={irParaPassoAnterior}
-            disabled={passoAtual === 0}
-          >
-            <Text style={styles.botaoTexto}>Anterior</Text>
-          </TouchableOpacity>
+          )}
           
-          <TouchableOpacity 
-            style={[styles.botao, styles.botaoNavegacao]} 
-            onPress={irParaProximoPasso}
-          >
-            <Text style={styles.botaoTexto}>
-              {passoAtual === totalPassos - 1 ? "Finalizar" : "Próximo"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+          {/* Navegação entre passos */}
+          <View style={styles.navegacao}>
+            <TouchableOpacity 
+              style={[
+                styles.botao, 
+                styles.botaoNavegacao, 
+                passoAtual === 0 ? styles.botaoDesativado : null
+              ]} 
+              onPress={irParaPassoAnterior}
+              disabled={passoAtual === 0}
+            >
+              <Text style={styles.botaoTexto}>Anterior</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.botao, styles.botaoNavegacao]} 
+              onPress={irParaProximoPasso}
+            >
+              <Text style={styles.botaoTexto}>
+                {passoAtual === totalPassos - 1 ? "Finalizar" : "Próximo"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
     </View>
   );
@@ -215,6 +218,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 56,
     borderBottomRightRadius: 56,
     padding: 16,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   cabecalho: {
     padding: 16,
