@@ -84,7 +84,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
     
     try {
       // Configurar URL base para diferentes ambientes
-      const baseURL = 'http://192.168.15.4:3000'; // ajuste conforme necessário
+      const baseURL = 'https://cookflow-back.onrender.com'; // ajuste conforme necessário
       
       // Register user with the API
       const response = await axios.post(`${baseURL}/users`, {

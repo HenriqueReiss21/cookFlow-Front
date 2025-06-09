@@ -10,7 +10,7 @@ interface Passo {
   descricao: string;
   animacao: string;
   tipo: string;
-  tempo: number; // Adicione isso se existir na API
+  tempo: number;
 }
 
 interface ReceitaAPI {
@@ -24,7 +24,6 @@ interface ReceitaAPI {
   descricao: string;
   dificuldade: string;
   porcoes: number;
-  // Adicione outros campos conforme necessário
 }
 
 // Tipo para o formato exigido pelo componente ReceitaPassoAPasso
@@ -58,7 +57,7 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
   const TEMPO_PADRAO_POR_PASSO = 120;
   
   // API base URL (poderia vir de um arquivo de configuração)
-  const API_BASE_URL = "http://192.168.15.4:3000";
+  const API_BASE_URL = "https://cookflow-back.onrender.com";
   
  const buscarReceitaDaAPI = async () => {
   if (!item?.id) {

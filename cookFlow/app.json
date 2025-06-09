@@ -1,6 +1,8 @@
 {
   "expo": {
-    "permissions": ["INTERNET"],
+    "permissions": [
+      "INTERNET"
+    ],
     "name": "cookFlow",
     "slug": "cookFlow",
     "version": "1.0.0",
@@ -20,10 +22,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.scart0n.cookFlow"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "2f533823-9dd0-493b-bf9c-cd0a820fe9a2"
+      }
     }
   }
 }

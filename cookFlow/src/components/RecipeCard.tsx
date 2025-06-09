@@ -1,51 +1,35 @@
-import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
-import { Recipe, useRecipes } from '../hooks/useRecipes';
+import { Recipe } from '../hooks/useRecipes';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const RecipeCard = () => {
-  const navigation = useNavigation();
-  const { recipes, loading, error } = useRecipes();
+// Define o tipo para a navegação
+type RootStackParamList = {
+  Login: undefined;
+  Welcome: undefined;
+  ReceipeList: undefined;
+  RecipeDetail: { recipeId: string };
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+interface RecipeCardProps {
+  recipes: Recipe[];
+}
+
+const RecipeCard: React.FC<RecipeCardProps> = ({ recipes }) => {
+  const navigation = useNavigation<NavigationProp>();
 
   const handleRecipePress = (recipe: Recipe) => {
-    // Verificar se a receita existe
     if (!recipe) {
       console.error('Receita inválida');
       return;
     }
-    console.log('Navegando para RecipeDetail com item:', recipe);
-    navigation.navigate('RecipeDetail', { item: recipe });
+    console.log('Navegando para RecipeDetail com recipeId:', recipe.id);
+    navigation.navigate('RecipeDetail', { recipeId: recipe.id });
   };
-
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#f96163" />
-        <Text>Carregando receitas...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centered}>
-        <FontAwesome name="exclamation-circle" size={40} color="#f96163" />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => {}}>
-          <Text style={styles.retryText}>Tentar novamente</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (!recipes || recipes.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.noRecipesText}>Nenhuma receita encontrada</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -57,39 +41,31 @@ const RecipeCard = () => {
             onPress={() => handleRecipePress(item)}
             style={styles.card}
           >
-            <Image
-              source={item.image}
-              style={styles.cardImage}
-              resizeMode="cover"
-            />
+            <Image source={item.image} style={styles.cardImage} resizeMode="cover" />
             <View style={styles.cardInfo}>
               <Text style={styles.cardTitle}>{item.name}</Text>
               <View style={styles.cardDetails}>
-                <View style={styles.detailItem}>
-                  <FontAwesome name="star" size={14} color="#FFD700" />
-                  <Text style={styles.detailText}>{item.rating}</Text>
-                </View>
+                {/* Removido rating e calories devido à inconsistência com ApiRecipe */}
                 <View style={styles.detailItem}>
                   <FontAwesome name="clock-o" size={14} color="#f96163" />
                   <Text style={styles.detailText}>{item.time}</Text>
                 </View>
                 <View style={styles.detailItem}>
-                  <FontAwesome name="fire" size={14} color="#FF8C00" />
-                  <Text style={styles.detailText}>{item.calories}</Text>
+                  <FontAwesome
+                    name="circle"
+                    size={14}
+                    color={
+                      item.difficulty === 'Fácil'
+                        ? '#4CAF50' // Verde
+                        : item.difficulty === 'Mediano'
+                        ? '#FF9800' // Laranja
+                        : item.difficulty === 'Difícil'
+                        ? '#F44336' // Vermelho
+                        : '#FFD700' // Amarelo (padrão)
+                    }
+                  />
+                  <Text style={styles.detailText}>{item.difficulty}</Text>
                 </View>
-                <View style={styles.detailItem}>
-                <FontAwesome 
-                  name="circle" 
-                  size={14} 
-                  color={
-                    item.difficulty === "Fácil" ? "#4CAF50" :  // Verde
-                    item.difficulty === "Mediano" ? "#FF9800" : // Laranja
-                    item.difficulty === "Difícil" ? "#F44336" : // Vermelho
-                    "#FFD700" // Amarelo (cor padrão caso nenhuma condição seja atendida)
-                  } 
-                />
-                <Text style={styles.detailText}>{item.difficulty}</Text>
-              </View>
               </View>
               <View style={styles.categoryBadge}>
                 <Text style={styles.categoryText}>{item.category}</Text>
@@ -167,30 +143,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 10,
     fontWeight: '600',
-  },
-  centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    height: 200,
-  },
-  errorText: {
-    color: '#f96163',
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  retryButton: {
-    marginTop: 15,
-    backgroundColor: '#f96163',
-    padding: 10,
-    borderRadius: 8,
-  },
-  retryText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  noRecipesText: {
-    fontSize: 16,
-    color: '#606060', 
   },
 });

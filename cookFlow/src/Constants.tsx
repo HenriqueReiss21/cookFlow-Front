@@ -2,7 +2,7 @@
 
 // URL base da API - substitua pelo endereço real da sua API
 // Para dispositivos físicos, use seu IP local ou uma URL de produção
-export const API_BASE_URL = 'http://192.168.15.2:3000';
+export const API_BASE_URL = 'https://cookflow-back.onrender.com';
 
 // Cores do tema
 export const COLORS = {

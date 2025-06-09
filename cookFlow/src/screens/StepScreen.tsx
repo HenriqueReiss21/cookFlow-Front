@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { FontAwesome } from "@expo/vector-icons";
+import * as Haptics from 'expo-haptics';
 
 // Definição de tipos
 interface PassoReceita {
@@ -36,14 +37,44 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
   const [passoAtual, setPassoAtual] = useState<number>(0);
   const [tempoRestante, setTempoRestante] = useState<number>(0);
   const [timerAtivo, setTimerAtivo] = useState<boolean>(false);
+  const [vibrandoContinuo, setVibrandoContinuo] = useState<boolean>(false);
   const timerRef = useRef<number | null>(null);
+  const vibrationRef = useRef<number | null>(null);
   
   const totalPassos: number = receita.passos.length;
+  
+  // Função para iniciar vibração contínua
+  const iniciarVibracaoContinua = () => {
+    if (vibrandoContinuo) return;
+    
+    setVibrandoContinuo(true);
+    
+    // Primeira vibração
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    
+    // Vibração contínua a cada 1 segundo
+    vibrationRef.current = setInterval(() => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }, 1000) as unknown as number;
+  };
+  
+  // Função para parar vibração contínua
+  const pararVibracaoContinua = () => {
+    if (vibrationRef.current !== null) {
+      clearInterval(vibrationRef.current);
+      vibrationRef.current = null;
+    }
+    setVibrandoContinuo(false);
+  };
   
   // Inicializa o temporizador quando um novo passo é carregado
   useEffect(() => {
     const tempoPassoAtual = receita.passos[passoAtual]?.tempoEmSegundos || 0;
     setTempoRestante(tempoPassoAtual);
+    
+    // Para a vibração ao mudar de passo
+    pararVibracaoContinua();
+    
     // Limpa o timer anterior se existir
     if (timerRef.current !== null) {
       clearInterval(timerRef.current);
@@ -62,12 +93,16 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
               clearInterval(timerRef.current);
             }
             setTimerAtivo(false);
-            Alert.alert("Tempo finalizado!", "Este passo está completo.");
+            
+            // Inicia vibração contínua quando o tempo chega a 0
+            iniciarVibracaoContinua();
+            
+            Alert.alert("Tempo finalizado!", "Este passo está completo. Toque em 'Próximo' para continuar.");
             return 0;
           }
           return prev - 1;
         });
-      }, 1000) as unknown as number; // Casting para compatibilidade com React Native
+      }, 1000) as unknown as number;
     } else if (tempoRestante <= 0 && timerAtivo) {
       setTimerAtivo(false);
       if (timerRef.current !== null) {
@@ -80,8 +115,19 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
       if (timerRef.current !== null) {
         clearInterval(timerRef.current);
       }
+      pararVibracaoContinua();
     };
   }, [timerAtivo, tempoRestante]);
+  
+  // Limpa tudo quando o componente é desmontado
+  useEffect(() => {
+    return () => {
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current);
+      }
+      pararVibracaoContinua();
+    };
+  }, []);
   
   // Formata o tempo para exibição MM:SS
   const formatarTempo = (segundos: number): string => {
@@ -92,6 +138,9 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
   
   // Funções para navegar entre os passos
   const irParaProximoPasso = (): void => {
+    // Para a vibração ao avançar para o próximo passo
+    pararVibracaoContinua();
+    
     if (passoAtual < totalPassos - 1) {
       setPassoAtual(passoAtual + 1);
     } else {
@@ -101,6 +150,9 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
   };
   
   const irParaPassoAnterior = (): void => {
+    // Para a vibração ao voltar para o passo anterior
+    pararVibracaoContinua();
+    
     if (passoAtual > 0) {
       setPassoAtual(passoAtual - 1);
     }
@@ -108,11 +160,18 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
   
   // Inicia ou pausa o temporizador
   const alternarTimer = (): void => {
+    // Para a vibração se o usuário pausar/iniciar o timer
+    if (vibrandoContinuo) {
+      pararVibracaoContinua();
+    }
     setTimerAtivo(!timerAtivo);
   };
   
   // Reinicia o temporizador
   const reiniciarTimer = (): void => {
+    // Para a vibração ao reiniciar
+    pararVibracaoContinua();
+    
     setTempoRestante(receita.passos[passoAtual]?.tempoEmSegundos || 0);
     setTimerAtivo(false);
   };
@@ -150,9 +209,20 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
               
               {/* Temporizador */}
               <View style={styles.timerContainer}>
-                <Text style={styles.timerTexto}>
+                <Text style={[
+                  styles.timerTexto,
+                  vibrandoContinuo && styles.timerTextoVibrando
+                ]}>
                   {formatarTempo(tempoRestante)}
                 </Text>
+                
+                {/* Indicador visual quando está vibrando */}
+                {vibrandoContinuo && (
+                  <Text style={styles.indicadorVibracao}>
+                    📳 Vibrando - Avance para o próximo passo
+                  </Text>
+                )}
+                
                 <View style={styles.timerBotoes}>
                   <TouchableOpacity 
                     style={[styles.botao, styles.botaoTimer]} 
@@ -188,7 +258,11 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={[styles.botao, styles.botaoNavegacao]} 
+              style={[
+                styles.botao, 
+                styles.botaoNavegacao,
+                vibrandoContinuo && styles.botaoVibrando
+              ]} 
               onPress={irParaProximoPasso}
             >
               <Text style={styles.botaoTexto}>
@@ -278,6 +352,17 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 20,
   },
+  timerTextoVibrando: {
+    color: '#ff4444',
+    transform: [{ scale: 1.1 }],
+  },
+  indicadorVibracao: {
+    fontSize: 16,
+    color: '#ff4444',
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
   timerBotoes: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -317,6 +402,12 @@ const styles = StyleSheet.create({
   },
   botaoDesativado: {
     backgroundColor: '#d9d9d9',
+  },
+  botaoVibrando: {
+    backgroundColor: '#ff4444',
+    shadowColor: '#ff4444',
+    shadowOpacity: 0.3,
+    elevation: 6,
   },
 });
 
