@@ -44,31 +44,31 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
     
     // Name validation
     if (!name.trim()) {
-      setErrorMessage('Please enter your name');
+      setErrorMessage('Por favor insira seu nome');
       return false;
     }
     
     // Email validation
     if (!email.trim()) {
-      setErrorMessage('Please enter your email');
+      setErrorMessage('Por favor insira seu email');
       return false;
     }
     
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setErrorMessage('Please enter a valid email address');
+      setErrorMessage('Por favor insira seu nome');
       return false;
     }
     
     // Password validation
     if (!password.trim()) {
-      setErrorMessage('Please enter a password');
+      setErrorMessage('Por favor insira uma senha');
       return false;
     }
     
     // Confirm password validation
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
+      setErrorMessage('As senhas não coincidem.');
       return false;
     }
     
@@ -93,13 +93,13 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
         password
       });
       
-      console.log('Registration successful:', response.data);
+      console.log('Registro realizado com sucesso:', response.data);
       
       // Diminuir o loading antes de mostrar o alerta
       setIsLoading(false);
       
       // Tentar redirecionar diretamente primeiro - antes do alerta
-      console.log('Attempting direct navigation to Login screen...');
+      console.log('Tentando redirecionar para a tela de Login...');
       
       // Usar setTimeout para garantir que a navegação aconteça após a renderização atual
       setTimeout(() => {
@@ -108,8 +108,8 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
       
       // Show success message
       Alert.alert(
-        'Registration Successful',
-        'Your account has been created successfully! You can now log in.',
+        'Registro realizado com Sucesso!',
+        'Sua conta foi criada com sucesso! Você agora pode realizar o Login',
         [
           { 
             text: 'OK', 
@@ -134,16 +134,16 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
         const errorData = error.response.data;
         
         if (status === 400) {
-          setErrorMessage(errorData.message || 'Validation error. Please check your information.');
+          setErrorMessage(errorData.message || 'Erro na validação. Por favor, cheque as suas informações.');
         } else if (status === 409) {
-          setErrorMessage('This email is already registered. Please use a different email.');
+          setErrorMessage('Esse email já foi cadastrado. Por favor, use outro email.');
         } else {
-          setErrorMessage('Registration failed. Please try again later.');
+          setErrorMessage('Falha no registro. Por favor, tente novamente.');
         }
       } else if (error.request) {
-        setErrorMessage('Cannot connect to the server. Please check your internet connection.');
+        setErrorMessage('Não foi possivel conectar com o servidor. Por favor, cheque sua internet.');
       } else {
-        setErrorMessage('An unexpected error occurred. Please try again.');
+        setErrorMessage('Ocorreu um erro inesperado. Por favor, tente novamente.');
       }
     } finally {
       setIsLoading(false);
@@ -165,14 +165,14 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
         </View>
 
         <View style={styles.formContainer}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Sign up to join our cooking community</Text>
+          <Text style={styles.title}>Criar Conta</Text>
+          <Text style={styles.subtitle}>Crie sua conta para entrar em nossa comunidade de Cozinha</Text>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Name</Text>
+            <Text style={styles.inputLabel}>Nome</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your full name"
+              placeholder="Insira seu nome completo"
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
@@ -183,7 +183,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
             <Text style={styles.inputLabel}>Email</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
+              placeholder="Insira seu email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -192,10 +192,10 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
+            <Text style={styles.inputLabel}>Senha</Text>
             <TextInput
               style={styles.input}
-              placeholder="Create a password"
+              placeholder="Crie uma senha"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -203,10 +203,10 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Confirm Password</Text>
+            <Text style={styles.inputLabel}>Confirmar Senha</Text>
             <TextInput
               style={styles.input}
-              placeholder="Confirm your password"
+              placeholder="Confirme sua senha"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -227,13 +227,13 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.signUpButtonText}>Create Account</Text>
+              <Text style={styles.signUpButtonText}>Criar Con</Text>
             )}
           </TouchableOpacity>
 
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>
-              Already have an account?
+              Já possui uma conta?
             </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
               <Text style={styles.loginLink}> Sign in</Text>

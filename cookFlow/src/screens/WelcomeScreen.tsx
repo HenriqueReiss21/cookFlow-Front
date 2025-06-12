@@ -19,11 +19,11 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
       <Image source={require("../../assets/images/salada.png")} />
 
       <Text style={{ color: "#f96163", fontSize: 22, fontWeight: "bold" }}>
-        40K+ Premium Recepts
+        Receitas Premium!
       </Text>
 
       <Text style={{ fontSize: 42, fontWeight: "bold", color: "#3c444c", marginTop: 44, marginBottom: 20 }}>
-        Cook Like a Chef
+        Cozinhe como um chefe!
       </Text>
 
       <TouchableOpacity
@@ -36,7 +36,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           alignItems: "center"
         }}>
         <Text style={{ fontSize: 18, color: "#fff", fontWeight: "700" }}>
-          Let's Go
+          Vamos lá!
         </Text>
       </TouchableOpacity>
     </View>

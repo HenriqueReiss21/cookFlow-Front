@@ -10,6 +10,8 @@ import {
   StatusBar,
   Pressable,
   ScrollView,
+  Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from "@expo/vector-icons";
 import * as Haptics from 'expo-haptics';
@@ -34,6 +36,7 @@ interface StepScreenProps {
 }
 
 const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
+  const [loading, setLoading] = useState(true);
   const [passoAtual, setPassoAtual] = useState<number>(0);
   const [tempoRestante, setTempoRestante] = useState<number>(0);
   const [timerAtivo, setTimerAtivo] = useState<boolean>(false);
@@ -42,6 +45,15 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
   const vibrationRef = useRef<number | null>(null);
   
   const totalPassos: number = receita.passos.length;
+
+  // Simula o carregamento inicial
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); // 2 segundos de loading
+
+    return () => clearTimeout(timer);
+  }, []);
   
   // Função para iniciar vibração contínua
   const iniciarVibracaoContinua = () => {
@@ -130,11 +142,11 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
   }, []);
   
   // Formata o tempo para exibição MM:SS
-  const formatarTempo = (segundos: number): string => {
-    const minutos = Math.floor(segundos / 60);
-    const segsRestantes = segundos % 60;
-    return `${minutos.toString().padStart(2, '0')}:${segsRestantes.toString().padStart(2, '0')}`;
-  };
+    const formatarTempo = (segundos: number): string => {
+      const minutos = Math.floor(segundos / 60);
+      const segsRestantes = segundos % 60;
+      return `${minutos.toString().padStart(2, '0')}:${segsRestantes.toString().padStart(2, '0')}`;
+};
   
   // Funções para navegar entre os passos
   const irParaProximoPasso = (): void => {
@@ -175,6 +187,27 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
     setTempoRestante(receita.passos[passoAtual]?.tempoEmSegundos || 0);
     setTimerAtivo(false);
   };
+
+  // Componente de Loading
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: receita.color }]}>
+        <SafeAreaView style={styles.header}>
+          <Pressable style={{ flex: 1 }} onPress={onVoltar}>
+            <FontAwesome name={"arrow-circle-left"} size={28} color="red" />
+          </Pressable>
+        </SafeAreaView>
+        
+        <View style={styles.contentContainer}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={receita.color} />
+            <Text style={styles.loadingText}>Carregando receita...</Text>
+            <Text style={styles.loadingSubtext}>{receita.titulo}</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
   
   return (
     <View style={[styles.container, { backgroundColor: receita.color }]}>
@@ -408,6 +441,24 @@ const styles = StyleSheet.create({
     shadowColor: '#ff4444',
     shadowOpacity: 0.3,
     elevation: 6,
+  },
+  // Estilos do Loading
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#3c444c',
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  loadingSubtext: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
   },
 });
 

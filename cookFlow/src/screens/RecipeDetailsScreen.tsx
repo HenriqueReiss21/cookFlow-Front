@@ -42,10 +42,7 @@ interface ReceitaFormatada {
 }
 
 const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
-  // Verificar se route.params e item existem, e fornecer um objeto vazio como fallback
   const { item = {} } = route?.params || {};
-  
-  // Definir uma cor padrão para ser usada quando item.color não estiver disponível
   const DEFAULT_COLOR = "#f96163";
   
   const [carregando, setCarregando] = useState<boolean>(false);
@@ -53,60 +50,60 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
   const [receitaAPI, setReceitaAPI] = useState<ReceitaAPI | null>(null);
   const [receitaFormatada, setReceitaFormatada] = useState<ReceitaFormatada | null>(null);
   
-  // Tempo padrão por passo em segundos (2 minutos)
   const TEMPO_PADRAO_POR_PASSO = 120;
-  
-  // API base URL (poderia vir de um arquivo de configuração)
   const API_BASE_URL = "https://cookflow-back.onrender.com";
   
- const buscarReceitaDaAPI = async () => {
-  if (!item?.id) {
-    console.error('ID da receita não encontrado');
-    setCarregando(false);
-    return;
-  }
-  
-  setCarregando(true);
-  try {
-    // Modifique a URL para incluir o ID na rota
-    const response = await axios.get(`${API_BASE_URL}/receitas/${item.id}`);
-    
-    // Verifique se recebeu dados válidos
-    if (response.data) {
-      setReceitaAPI(response.data);
-      converterFormatoReceita(response.data);
-    } else {
-      throw new Error('Nenhum dado encontrado');
+  const buscarReceitaDaAPI = async () => {
+    // Se não tem ID, não precisa carregar da API - usa dados locais
+    if (!item?.id) {
+      console.log('ID da receita não encontrado - usando dados locais');
+      setCarregando(false);
+      return;
     }
-  } catch (erro) {
-    console.error('Erro ao buscar dados da API:', erro);
-    alert('Erro ao carregar receita da API.');
-  } finally {
-    setCarregando(false);
-  }
-};
-  
-  // Converter dados da API para o formato esperado pelo componente StepScreen
-const converterFormatoReceita = (receita: ReceitaAPI) => {
-  // Use a imagem da receita da API
-  const imagemUri = receita?.imagem || '';
-  
-  // Use o tempo específico de cada passo da API (convertendo minutos para segundos)
-  const passosFormatados: PassoReceita[] = receita?.passos?.map(passo => ({
-    id: passo.numero,
-    descricao: passo.descricao,
-    imagem: imagemUri,
-    tempoEmSegundos: passo.tempo * 60 || TEMPO_PADRAO_POR_PASSO
-  })) || [];
-  
-  setReceitaFormatada({
-    titulo: receita?.titulo || "Receita",
-    passos: passosFormatados,
-    color: item?.color || DEFAULT_COLOR,
-    recipeId: receita?._id || ''
-  });
-};
-  
+    
+    console.log('Iniciando busca na API para ID:', item.id);
+    setCarregando(true);
+
+    const converterFormatoReceita = (receita: ReceitaAPI) => {
+      const imagemUri = receita?.imagem || '';
+      
+      const passosFormatados: PassoReceita[] = receita?.passos?.map(passo => ({
+        id: passo.numero,
+        descricao: passo.descricao,
+        imagem: imagemUri,
+        tempoEmSegundos: passo.tempo * 60 || TEMPO_PADRAO_POR_PASSO
+      })) || [];
+      
+      setReceitaFormatada({
+        titulo: receita?.titulo || "Receita",
+        passos: passosFormatados,
+        color: item?.color || DEFAULT_COLOR,
+        recipeId: receita?._id || ''
+      });
+    };
+
+    try {
+      const response = await axios.get(`${API_BASE_URL}/receitas/${item.id}`);
+      console.log('Resposta da API:', response.data);
+    
+      if (response.data) {
+        converterFormatoReceita(response.data);
+        setReceitaAPI(response.data);
+        console.log('Dados da API carregados com sucesso');
+      } else {
+        throw new Error('Nenhum dado encontrado na resposta');
+      }
+    } catch (erro) {
+      if (erro instanceof Error) {
+        console.error('Erro ao buscar receita:', erro.message);
+      } else {
+        console.error('Erro desconhecido:', erro);
+      }
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   const iniciarPassoAPasso = () => {
     if (!receitaFormatada) {
       buscarReceitaDaAPI();
@@ -119,12 +116,11 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
     setMostrarPassoAPasso(false);
   };
   
-  // Efeito para carregar dados da API quando o componente for montado
   useEffect(() => {
+    console.log('Componente montado. Item recebido:', item);
     buscarReceitaDaAPI();
-  }, []);
+  }, [item.id]); // Dependência do ID para recarregar se mudar
   
-  // Renderiza o componente de passo a passo
   if (mostrarPassoAPasso && receitaFormatada) {
     return (
       <StepScreen
@@ -134,22 +130,34 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
     );
   }
   
-  // Renderiza a tela de carregamento
   if (carregando) {
     return (
-      <View style={{ 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        backgroundColor: item?.color || DEFAULT_COLOR 
-      }}>
-        <ActivityIndicator size="large" color="white" />
-        <Text style={{ marginTop: 16, color: 'white', fontSize: 18 }}>Carregando receita...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: item?.color || DEFAULT_COLOR }]}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>Carregando receita...</Text>
+        {/* Debug info - remover em produção */}
+        <Text style={styles.debugText}>ID: {item?.id || 'não encontrado'}</Text>
       </View>
     );
   }
   
-  // Renderiza a tela normal de detalhes da receita
+  // Função para obter dados mesclados (prioriza API, fallback para item)
+  const obterDadosMesclados = () => {
+    return {
+      nome: receitaAPI?.titulo || item?.name || "Nome da Receita",
+      descricao: receitaAPI?.descricao || item?.description || "Descrição não disponível",
+      ingredientes: receitaAPI?.ingredientes || item?.ingredients || [],
+      passos: receitaAPI?.passos || item?.steps || [],
+      dificuldade: receitaAPI?.dificuldade || item?.difficulty || "N/A",
+      tempo: receitaAPI?.tempoPreparo || item?.time || "N/A",
+      porcoes: receitaAPI?.porcoes || item?.calories || "N/A",
+      imagem: receitaAPI?.imagem || null,
+      imagemLocal: item?.image || null
+    };
+  };
+  
+  const dados = obterDadosMesclados();
+  
   return (
     <View style={{ backgroundColor: item?.color || DEFAULT_COLOR, flex: 1 }}> 
       <SafeAreaView style={{ flexDirection: "row", marginHorizontal: 16 }}>
@@ -163,6 +171,7 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
           
         <FontAwesome name={"heart-o"} size={28} color="white"/>
       </SafeAreaView>
+      
       <View style={{ 
           backgroundColor: "#fff",
           flex: 1,
@@ -180,27 +189,30 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
             top: -150
           }}
         >
-          {item?.image && (
+          {/* Renderiza imagem da API (URL) ou imagem local */}
+          {dados.imagem ? (
             <Image 
-              source={item.image} 
+              source={{ uri: dados.imagem }} 
               style={{width: "100%", height: "100%", resizeMode:"contain"}}
             />
-          )}
+          ) : dados.imagemLocal ? (
+            <Image 
+              source={dados.imagemLocal} 
+              style={{width: "100%", height: "100%", resizeMode:"contain"}}
+            />
+          ) : null}
         </View>
 
-        {/*Recipe Name*/}
         <Text style={{marginTop: 160, fontSize: 28, fontWeight: "bold"}}>
-          {item?.name || "Nome da Receita"}
+          {dados.nome}
         </Text> 
 
         <View style={{ flex: 1 }}>
           <ScrollView showsVerticalScrollIndicator={false}>
-            {/*Recipe Description*/}
             <Text style={{fontSize: 20, marginVertical: 16}}>
-              {item?.description || "Descrição não disponível"}
+              {dados.descricao}
             </Text> 
 
-            {/*Recipe Extra Details*/}
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <View style={{
                 backgroundColor: "rgba(255,0,0,0.38)",
@@ -210,7 +222,7 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
                 width: 100,
               }}>
                 <Text style={{ fontSize: 40 }}>👨‍🍳</Text>
-                <Text style={{fontSize: 20, fontWeight: "400"}}>{item?.difficulty || "N/A"}</Text>
+                <Text style={{fontSize: 20, fontWeight: "400"}}>{dados.dificuldade}</Text>
               </View>
               <View style={{
                 backgroundColor: "rgba(135,206,235,0.8)",
@@ -220,7 +232,7 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
                 width: 100,
               }}>
                 <Text style={{ fontSize: 40 }}>⏱️</Text>
-                <Text style={{fontSize: 20, fontWeight: "400"}}>{item?.time || "N/A"}</Text>
+                <Text style={{fontSize: 20, fontWeight: "400"}}>{dados.tempo}</Text>
               </View>
               <View style={{
                 backgroundColor: "rgba(255,165,0,0.48)",
@@ -230,11 +242,10 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
                 width: 100,
               }}>
                 <Text style={{ fontSize: 40 }}>🔥</Text>
-                <Text style={{fontSize: 20, fontWeight: "400"}}>{item?.calories || "N/A"}</Text>
+                <Text style={{fontSize: 20, fontWeight: "400"}}>{dados.porcoes}</Text>
               </View>
             </View>
 
-            {/* Botão para iniciar passo a passo */}
             <TouchableOpacity 
               style={styles.botaoIniciarPassoAPasso}
               onPress={iniciarPassoAPasso}
@@ -242,11 +253,10 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
               <Text style={styles.textoBotaoIniciar}>Iniciar Passo a Passo</Text>
             </TouchableOpacity>
 
-            {/*Recipe Ingredients*/}
             <View style={{alignSelf: "flex-start", marginVertical: 22}}>
               <Text style={{ fontSize: 22, fontWeight: "600", marginBottom: 6}}>Ingredientes</Text>
               
-              {(item?.ingredients || []).map((ingredient: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined, index: React.Key | null | undefined) => {
+              {dados.ingredientes.map((ingredient: string, index: number) => {
                 return (
                   <View key={index} style={{
                     flexDirection: "row", 
@@ -264,28 +274,28 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
                 );
               })}
               
-              {(!item?.ingredients || item.ingredients.length === 0) && (
+              {dados.ingredientes.length === 0 && (
                 <Text style={{ fontSize: 18, marginLeft: 6 }}>Nenhum ingrediente disponível</Text>
               )}
             </View>
 
-            {/*Recipe Steps*/}
             <View style={{alignSelf: "flex-start", marginVertical: 22}}>
               <Text style={{ fontSize: 22, fontWeight: "600", marginBottom: 6}}>
                 Passos:
               </Text>
               
-              {(item?.steps || []).map((step: any, index: React.Key | null | undefined) => {
-                // Convertendo explicitamente index para number para solucionar o erro TypeScript
-                const stepNumber = typeof index === 'number' ? index + 1 : 0;
+              {dados.passos.map((step: any, index: number) => {
+                // Para dados da API, step é um objeto Passo, para dados locais é string
+                const descricaoStep = typeof step === 'string' ? step : step.descricao;
+                
                 return (
                   <Text key={index} style={{ fontSize: 18, marginLeft: 6, marginVertical: 6}}>
-                    {`${stepNumber} ) ${step}`}
+                    {`${index + 1}) ${descricaoStep}`}
                   </Text>
                 );
               })}
               
-              {(!item?.steps || item.steps.length === 0) && (
+              {dados.passos.length === 0 && (
                 <Text style={{ fontSize: 18, marginLeft: 6 }}>Nenhum passo disponível</Text>
               )}
             </View> 
@@ -295,8 +305,6 @@ const converterFormatoReceita = (receita: ReceitaAPI) => {
     </View>
   );
 };
-
-export default RecipeDetailsScreen;
 
 const styles = StyleSheet.create({
   botaoIniciarPassoAPasso: {
@@ -317,5 +325,26 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '700',
-  }
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  debugText: {
+    marginTop: 8,
+    color: '#fff',
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.8,
+  },
 });
+
+export default RecipeDetailsScreen;
