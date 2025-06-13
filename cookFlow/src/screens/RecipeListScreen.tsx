@@ -107,7 +107,7 @@ const RecipeListScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          <SearchFilter icon="search" placeholder="Insira sua receita favorita" />
+          <SearchFilter icon="search" placeholder="Enter your favorite recipe" />
 
           {/* Categories filter */}
           <View style={{ marginTop: 22 }}>
