@@ -23,12 +23,12 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipes }) => {
   const navigation = useNavigation<NavigationProp>();
 
   const handleRecipePress = (recipe: Recipe) => {
-    if (!recipe) {
-      console.error('Receita inválida');
-      return;
-    }
-    console.log('Navegando para RecipeDetail com recipeId:', recipe.id);
-    navigation.navigate('RecipeDetail', { recipeId: recipe.id });
+  if (!recipe?._id) {
+    console.error('Receita inválida ou sem ID:', recipe);
+    return;
+  }
+  console.log('Navegando para RecipeDetail com _id:', recipe._id);
+  navigation.navigate('RecipeDetail', { recipeId: recipe._id });
   };
 
   return (
@@ -73,7 +73,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipes }) => {
             </View>
           </TouchableOpacity>
         )}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingVertical: 10 }}
       />

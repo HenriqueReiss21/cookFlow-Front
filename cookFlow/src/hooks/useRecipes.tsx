@@ -22,17 +22,16 @@ export interface ApiRecipe {
 
 // Interface para o formato que o app espera
 export interface Recipe {
-  id: string;
+  _id: string; // Use apenas _id para consistência com a API
   name: string;
   image: any;
-  rating: string;
   ingredients: string[];
   steps: string[];
   time: string;
   difficulty: string;
-  calories: string;
   category: string;
   description: string;
+  // Remova rating e calories se não vierem da API
 }
 
 export const useRecipes = () => {
@@ -52,17 +51,16 @@ export const useRecipes = () => {
       
       // Transformar os dados da API para o formato esperado pelo app
       const transformedRecipes: Recipe[] = response.data.map(recipe => ({
-        id: recipe._id,
+        _id: recipe._id, // Mantenha _id em vez de id
         name: recipe.titulo,
-        image: { uri: recipe.imagem }, // Usando URI para imagens
-        rating: recipe.rating, // Erro da IDE do VS Code, funcionando normalmente
+        image: { uri: recipe.imagem },
         ingredients: recipe.ingredientes,
         steps: recipe.passos.map(passo => passo.descricao),
         time: recipe.tempoPreparo,
         difficulty: recipe.dificuldade,
-        calories: recipe.calorias, // Erro da IDE do VS Code, funcionando normalmente
         category: recipe.categoria,
         description: recipe.descricao
+        // Remova rating e calories se não existirem na API
       }));
       
       // Extrair categorias únicas para o filtro

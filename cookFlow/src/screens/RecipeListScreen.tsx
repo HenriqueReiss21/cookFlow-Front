@@ -1,8 +1,7 @@
 import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, RefreshControl, ScrollView, ActivityIndicator } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from '../components/Header';
 import SearchFilter from '../components/SearchFilter';
-import CategoriesFilter from '../components/CategoriesFilter';
 import RecipeCard from '../components/RecipeCard';
 import { useAuth } from '../contexts/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
@@ -23,8 +22,9 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const RecipeListScreen: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigation = useNavigation<NavigationProp>();
-  const { recipes, loading, error, refreshRecipes } = useRecipes();
+  const { recipes, allRecipes, loading, error, refreshRecipes } = useRecipes();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   const handleLogout = async () => {
     await signOut();
@@ -39,6 +39,57 @@ const RecipeListScreen: React.FC = () => {
     await refreshRecipes();
     setRefreshing(false);
   }, [refreshRecipes]);
+
+  // Extrair categorias únicas das receitas
+  const categories = useMemo(() => {
+    const uniqueCategories = Array.from(
+      new Set((allRecipes || recipes).map(recipe => recipe.category).filter(Boolean))
+    );
+    return ['All', ...uniqueCategories];
+  }, [allRecipes, recipes]);
+
+  // Filtrar receitas por categoria
+  const filteredRecipes = useMemo(() => {
+    const recipesToFilter = allRecipes || recipes;
+    if (selectedCategory === 'All') {
+      return recipesToFilter;
+    }
+    return recipesToFilter.filter(recipe => recipe.category === selectedCategory);
+  }, [allRecipes, recipes, selectedCategory]);
+
+  const handleCategoryFilter = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  // Componente CategoriesFilter integrado
+  const CategoriesFilterComponent = () => (
+    <View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesContainer}>
+        {categories.map((category, index) => {
+          const isSelected = category === selectedCategory;
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.categoryItem,
+                isSelected && styles.selectedCategory
+              ]}
+              onPress={() => handleCategoryFilter(category)}
+            >
+              <Text 
+                style={[
+                  styles.categoryText,
+                  isSelected && styles.selectedCategoryText
+                ]}
+              >
+                {category}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -61,12 +112,20 @@ const RecipeListScreen: React.FC = () => {
           {/* Categories filter */}
           <View style={{ marginTop: 22 }}>
             <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Categories</Text>
-            <CategoriesFilter />
+            <CategoriesFilterComponent />
           </View>
 
           {/* Recipes List */}
           <View style={{ marginTop: 22, flex: 1 }}>
-            <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Recipes</Text>
+            <View style={styles.recipesHeader}>
+              <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Recipes</Text>
+              {selectedCategory && selectedCategory !== 'All' && (
+                <Text style={styles.filterIndicator}>
+                  Filtrado por: {selectedCategory} ({filteredRecipes.length} receitas)
+                </Text>
+              )}
+            </View>
+            
             {error && (
               <View style={styles.centered}>
                 <FontAwesome name="exclamation-circle" size={40} color="#f96163" />
@@ -76,19 +135,27 @@ const RecipeListScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
             )}
+            
             {loading && (
               <View style={styles.centered}>
                 <ActivityIndicator size="large" color="#f96163" />
                 <Text>Carregando receitas...</Text>
               </View>
             )}
-            {!loading && !error && recipes.length === 0 && (
+            
+            {!loading && !error && filteredRecipes.length === 0 && (
               <View style={styles.centered}>
-                <Text style={styles.noRecipesText}>Nenhuma receita encontrada</Text>
+                <Text style={styles.noRecipesText}>
+                  {selectedCategory && selectedCategory !== 'All' 
+                    ? `Nenhuma receita encontrada para a categoria "${selectedCategory}"`
+                    : 'Nenhuma receita encontrada'
+                  }
+                </Text>
               </View>
             )}
-            {!loading && !error && recipes.length > 0 && (
-              <RecipeCard recipes={recipes} />
+            
+            {!loading && !error && filteredRecipes.length > 0 && (
+              <RecipeCard recipes={filteredRecipes} />
             )}
           </View>
         </View>
@@ -127,6 +194,43 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 5,
   },
+  recipesHeader: {
+    marginBottom: 10,
+  },
+  filterIndicator: {
+    fontSize: 14,
+    color: '#f96163',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  categoriesContainer: {
+    paddingVertical: 15,
+  },
+  categoryItem: {
+    marginRight: 12,
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  selectedCategory: {
+    backgroundColor: '#f96163',
+  },
+  categoryText: {
+    fontWeight: '500',
+    color: '#333',
+  },
+  selectedCategoryText: {
+    color: '#fff',
+  },
   centered: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -151,5 +255,6 @@ const styles = StyleSheet.create({
   noRecipesText: {
     fontSize: 16,
     color: '#606060',
+    textAlign: 'center',
   },
 });
