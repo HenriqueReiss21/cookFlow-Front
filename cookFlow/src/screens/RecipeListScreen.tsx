@@ -1,7 +1,6 @@
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, RefreshControl, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, RefreshControl, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import React, { useState, useEffect, useMemo } from 'react';
 import Header from '../components/Header';
-import SearchFilter from '../components/SearchFilter';
 import RecipeCard from '../components/RecipeCard';
 import { useAuth } from '../contexts/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
@@ -19,12 +18,29 @@ type RootStackParamList = {
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+// Componente SearchFilter movido para fora para evitar re-criação
+const SearchFilterComponent = ({ searchText, onSearchChange }: { 
+  searchText: string; 
+  onSearchChange: (text: string) => void;
+}) => (
+  <View style={styles.searchContainer}>
+    <FontAwesome name="search" size={20} color="#f96163" />
+    <TextInput
+      style={styles.searchInput}
+      placeholder="Enter your favorite recipe"
+      value={searchText}
+      onChangeText={onSearchChange}
+    />
+  </View>
+);
+
 const RecipeListScreen: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigation = useNavigation<NavigationProp>();
   const { recipes, allRecipes, loading, error, refreshRecipes } = useRecipes();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [searchText, setSearchText] = useState<string>('');
 
   const handleLogout = async () => {
     await signOut();
@@ -48,17 +64,36 @@ const RecipeListScreen: React.FC = () => {
     return ['All', ...uniqueCategories];
   }, [allRecipes, recipes]);
 
-  // Filtrar receitas por categoria
+  // Filtrar receitas por categoria e busca
   const filteredRecipes = useMemo(() => {
     const recipesToFilter = allRecipes || recipes;
-    if (selectedCategory === 'All') {
-      return recipesToFilter;
+    
+    // Primeiro, filtrar por categoria
+    let filtered = recipesToFilter;
+    if (selectedCategory !== 'All') {
+      filtered = filtered.filter(recipe => recipe.category === selectedCategory);
     }
-    return recipesToFilter.filter(recipe => recipe.category === selectedCategory);
-  }, [allRecipes, recipes, selectedCategory]);
+    
+    // Depois, filtrar por texto de busca
+    if (searchText.trim()) {
+      filtered = filtered.filter(recipe => 
+        recipe.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+        recipe.description?.toLowerCase().includes(searchText.toLowerCase()) ||
+        recipe.ingredients?.some(ingredient => 
+          ingredient.toLowerCase().includes(searchText.toLowerCase())
+        )
+      );
+    }
+    
+    return filtered;
+  }, [allRecipes, recipes, selectedCategory, searchText]);
 
   const handleCategoryFilter = (category: string) => {
     setSelectedCategory(category);
+  };
+
+  const handleSearch = (text: string) => {
+    setSearchText(text);
   };
 
   // Componente CategoriesFilter integrado
@@ -107,7 +142,7 @@ const RecipeListScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          <SearchFilter icon="search" placeholder="Enter your favorite recipe" />
+          <SearchFilterComponent searchText={searchText} onSearchChange={handleSearch} />
 
           {/* Categories filter */}
           <View style={{ marginTop: 22 }}>
@@ -119,9 +154,12 @@ const RecipeListScreen: React.FC = () => {
           <View style={{ marginTop: 22, flex: 1 }}>
             <View style={styles.recipesHeader}>
               <Text style={{ fontSize: 22, fontWeight: 'bold' }}>Recipes</Text>
-              {selectedCategory && selectedCategory !== 'All' && (
+              {(selectedCategory !== 'All' || searchText.trim()) && (
                 <Text style={styles.filterIndicator}>
-                  Filtrado por: {selectedCategory} ({filteredRecipes.length} receitas)
+                  {selectedCategory !== 'All' && `Categoria: ${selectedCategory}`}
+                  {selectedCategory !== 'All' && searchText.trim() && ' • '}
+                  {searchText.trim() && `Busca: "${searchText}"`}
+                  {' '}({filteredRecipes.length} receitas)
                 </Text>
               )}
             </View>
@@ -146,7 +184,11 @@ const RecipeListScreen: React.FC = () => {
             {!loading && !error && filteredRecipes.length === 0 && (
               <View style={styles.centered}>
                 <Text style={styles.noRecipesText}>
-                  {selectedCategory && selectedCategory !== 'All' 
+                  {searchText.trim() && selectedCategory !== 'All' 
+                    ? `Nenhuma receita encontrada para "${searchText}" na categoria "${selectedCategory}"`
+                    : searchText.trim()
+                    ? `Nenhuma receita encontrada para "${searchText}"`
+                    : selectedCategory !== 'All'
                     ? `Nenhuma receita encontrada para a categoria "${selectedCategory}"`
                     : 'Nenhuma receita encontrada'
                   }
@@ -202,6 +244,28 @@ const styles = StyleSheet.create({
     color: '#f96163',
     fontWeight: '500',
     marginTop: 4,
+  },
+  searchContainer: {
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 1.5,
+    elevation: 2,
+  },
+  searchInput: {
+    marginLeft: 12,
+    fontSize: 16,
+    flex: 1,
   },
   categoriesContainer: {
     paddingVertical: 15,
