@@ -57,7 +57,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     
     // Validação básica de formulário
     if (!email.trim() || !password.trim()) {
-      setErrorMessage('Please enter both email and password');
+      setErrorMessage('Por favor insira seu email e senha.');
       return;
     }
 
@@ -75,11 +75,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         });
       } else {
         console.log('Login failed, showing error');
-        setErrorMessage(error || 'Invalid email or password. Please try again.');
+        setErrorMessage(error || 'Email ou senha inválidos. Por favor, tente novamente.');
       }
     } catch (err) {
       console.error('Unexpected error during login:', err);
-      setErrorMessage('An unexpected error occurred. Please try again later.');
+      setErrorMessage('Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.');
     }
   };
 
@@ -103,13 +103,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
         <View style={styles.formContainer}>
           <Text style={styles.title}>Login</Text>
-          <Text style={styles.subtitle}>Sign in to continue cooking like a chef</Text>
+          <Text style={styles.subtitle}>Realize seu Login para continuar a cozinhar como um verdadeiro chef!</Text>
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Email</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
+              placeholder="Insira seu Email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -118,10 +118,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
+            <Text style={styles.inputLabel}>Senha</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your password"
+              placeholder="Insira sua Senha"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -148,7 +148,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
           <View style={styles.registerContainer}>
             <Text style={styles.registerText}>
-              Don't have an account?
+              Já possui uma conta? 
             </Text>
             <TouchableOpacity onPress={handleNavigateToSignUp}>
               <Text style={styles.registerLink}> Sign up</Text>

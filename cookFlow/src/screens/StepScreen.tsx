@@ -142,11 +142,11 @@ const StepScreen: React.FC<StepScreenProps> = ({ receita, onVoltar }) => {
   }, []);
   
   // Formata o tempo para exibição MM:SS
-  const formatarTempo = (segundos: number): string => {
-    const minutos = Math.floor(segundos / 60);
-    const segsRestantes = segundos % 60;
-    return `${minutos.toString().padStart(2, '0')}:${segsRestantes.toString().padStart(2, '0')}`;
-  };
+    const formatarTempo = (segundos: number): string => {
+      const minutos = Math.floor(segundos / 60);
+      const segsRestantes = segundos % 60;
+      return `${minutos.toString().padStart(2, '0')}:${segsRestantes.toString().padStart(2, '0')}`;
+};
   
   // Funções para navegar entre os passos
   const irParaProximoPasso = (): void => {

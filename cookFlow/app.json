@@ -1,8 +1,5 @@
 {
   "expo": {
-    "permissions": [
-      "INTERNET"
-    ],
     "name": "cookFlow",
     "slug": "cookFlow",
     "version": "1.0.0",
@@ -32,6 +29,10 @@
       "eas": {
         "projectId": "2f533823-9dd0-493b-bf9c-cd0a820fe9a2"
       }
-    }
+    },
+    "permissions": [
+      "INTERNET"
+    ],
+    "plugins": ["expo-router"]
   }
 }

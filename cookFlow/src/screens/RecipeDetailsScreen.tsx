@@ -44,7 +44,9 @@ interface ReceitaFormatada {
 }
 
 const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
+
   const { item = {}, recipeId } = route?.params || {};
+
   const DEFAULT_COLOR = "#f96163";
   
   const [carregando, setCarregando] = useState<boolean>(false);
@@ -287,7 +289,9 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
     );
   }
   
+
   // Renderiza loading
+
   if (carregando) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: item?.color || DEFAULT_COLOR }]}>
@@ -306,6 +310,7 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
   
   // Função para obter dados mesclados (prioriza API, fallback para item)
   const obterDadosMesclados = () => {
+
     const dados = {
       nome: receitaAPI?.titulo || item?.name || "Nome da Receita",
       descricao: receitaAPI?.descricao || item?.description || "Descrição não disponível",
@@ -380,6 +385,7 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
               <Text style={styles.placeholderText}>📷</Text>
             </View>
           )}
+
         </View>
 
         <Text style={{marginTop: 160, fontSize: 28, fontWeight: "bold"}}>
@@ -497,6 +503,7 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
                 <Text style={{ fontSize: 18, marginLeft: 6, color: '#666' }}>
                   Nenhum passo disponível
                 </Text>
+
               )}
             </View> 
           </ScrollView>
@@ -505,8 +512,6 @@ const RecipeDetailsScreen: React.FC<any> = ({ navigation, route }) => {
     </View>
   );
 };
-
-export default RecipeDetailsScreen;
 
 const styles = StyleSheet.create({
   botaoIniciarPassoAPasso: {
@@ -532,9 +537,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+
   textoBotaoDesabilitado: {
     color: '#888',
   },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -573,3 +580,4 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 });
+
